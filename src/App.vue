@@ -16,11 +16,12 @@
       <div class="score-block">{{footer2score}}</div>
       <div class="score-block">{{footer3score}}</div>
     </div>
+    <button @click="replay">RePlay</button>
   </div>
 </template>
 
 <script>
-  import animate from 'animate.css';
+import animate from 'animate.css';
 
 export default {
   name: 'app',
@@ -38,13 +39,8 @@ export default {
       footer2score:1,
       footer3score:1,
       sum:1,
-      num:15,
+      num:20,
     }
-  },
-  computed:{
-    /*function (num) {
-      return Math.round(Math.random()*num);
-    },*/
   },
   methods:{
     move(e){
@@ -263,8 +259,31 @@ export default {
 
     },
     changeBlock(blockName,oDiv,hard){
+      let blockRow = oDiv.style.gridRowStart.slice(0,-1);   //取得将要方块正处于的行名
+      let rowNum = parseInt(oDiv.style.gridRowStart.substr(-1));   //取得将要方块正处于的行数
+      let pre = "nothing";
+      let next = "nothing";
+      if(blockRow==="main"){
+        pre='head';
+        next='footer'
+      }else if(blockRow==="head"){
+        pre="nothing";
+        next="main";
+      }else{
+        pre="main";
+        next="nothing";
+      }
       let pattern = new RegExp(blockName);
-      if(pattern.test(oDiv.style.gridArea)){
+      let rowPat = new RegExp(blockRow);   //转成正则对象
+      let prePat = new RegExp(pre);   //转成正则对象
+      let nextPat = new RegExp(next);   //转成正则对象
+      let betweenP = new RegExp(blockRow+(rowNum+1));
+      let betweenN = new RegExp(blockRow+(rowNum-1));
+      //if(oDiv.style.gridRowStart)
+      let isAround = !(prePat.test(blockName)||nextPat.test(blockName)||betweenP.test(blockName)||betweenN.test(blockName));
+      if(pattern.test(oDiv.style.gridArea)||isAround){
+        this.positionX = 0;
+        this.positionY = 0;
         return;
       }
       this.positionX = 0;
@@ -275,7 +294,11 @@ export default {
         oDiv.style.gridArea=blockName;
         this.sum += parseInt(this[scoreName]);
         this[scoreName]*=hard;
+        this[scoreName]+= this.sum;
       }
+    },
+    replay(){
+      window.location='/';
     }
   },
 }
@@ -289,29 +312,28 @@ export default {
   text-align: center;
 }
   .container{
-    position: relative;
-    display: grid;
+    position: relative;   /*实现定位，使得滑块定位相对于此*/
+    display: grid;        /*定义网格布局*/
     width: 300px;
     height: 300px;
-    grid-template-columns: 100px 100px 100px;
+    grid-template-columns: 100px 100px 100px;     /*实现九宫格，行列各三*/
     grid-template-rows: 100px 100px 100px;
-    grid-template-areas: "head1 head2 head3"
+    grid-template-areas: "head1 head2 head3"      /*定义个格子的名称，方便计算*/
                           "main1 main2 main3"
                           "footer1 footer2 footer3";
-    /*grid-template-areas: none;*/
     border: 1px solid #000;
     margin: 0 auto;
   }
   .block{
-    position: absolute;
+    position: absolute;     /*相对于container定位*/
     width: 100px;
     height: 100px;
-    display: flex;
+    display: flex;        /*flex布局，使得文字在中央*/
     justify-content: center;
     justify-items: center;
     align-items: center;
     align-content: center;
-    user-select: none;
+    user-select: none;      /*用户不可选定文字*/
     background: olivedrab;
     border: 1px solid #000
   }
